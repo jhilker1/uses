@@ -15,11 +15,11 @@ I have a few colorschemes I like to play around with.
 ** Gruvbox
 Gruvbox has become one of my favorite colorschemes (even if the documentation is non-existent), especially with the multiple contrast options. The CC in the numbers here is for opacity of the bars. I am using the dark theme here.
 *** Background Colors
-#+begin_example
+#+begin_src conf
 ;; Gruvbox Soft Contrast
 ;bg = #CC32302f
 ;bg-bright = #CC3c3836
-#+end_example
+#+end_src
 **** Medium Contrast
 #+begin_src conf
 ;; Gruvbox Medium Contrast
@@ -27,11 +27,11 @@ bg = #CC282828
 bg-bright = #CC32302f
 #+end_src
 **** Hard Contrast
-#+begin_example
+#+begin_src conf
 ;; Hard Contrast
 ;bg = #CC1d2021
 ;bg-bright = #CC282828
-#+end_example
+#+end_src
 
 *** Foreground and Accent Colors
 #+begin_src conf
@@ -48,22 +48,6 @@ orange = #d65d0e
 darkorange = #af3a03
 #+end_src
 
-
-** Nord
-Nord has quickly become one of my favorite color schemes. It also helps that it has some of the best documentation (in my opconfon).
-#+begin_example
-;bg = #2e3440
-;bg-bright = #CC3b4252
-;fg = #D8DEE9
-;red = #BF616A
-;green = #A3BE8C
-;yellow = #EBCB8B
-;blue = #81a1c1
-;darkblue = #5e81ac
-;purple = #B48EAD
-;cyan = #8fbcbb
-;orange = #d08770
-#+end_example
 
 * Fonts
 This section defines the fonts I use.
