@@ -1,0 +1,21 @@
+#+title: Home
+#+export_file_name: index
+#+options: toc:3
+
+
+This website, being built with =ox-publish=, describes my current tech-stack and my literate configuration files for various programs. Please note that it is VERY MUCH still a work-in-progress, and that it will be updated as frequently as possible.
+
+* My Tech Stack
+** Hardware
+I have a few PCs I like to use for hardware.
+
+* Editors
+Obviously, since I use =ox-publish= for building this website, I use emacs, quite a lot. 
+** Emacs
+  - Jmacs: Jmacs is my personal literate configuration, built from the ground up. It's inspired by Doom Emacs and Spacemacs.
+  - Doom Emacs: It's like spacemacs, but closer "to the metal" compared to spacemacs, and has some different bindings.
+
+* WM and Bar
+I currently use Regolith Linux as my daily driver OS, though I am trying other WMs as well - primarily BSPWM, though I do want to try Qtile just for the hell of it.
+
+Polybar - an easy-to-configure, highly hackable statusbar. My go-to bar when using i3 or BSPWM.

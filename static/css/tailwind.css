@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    
+    html {
+        @apply scroll-smooth motion-reduce:scroll-auto;
+    }
+
+    body {
+        @apply min-h-screen antialiased bg-gray-100 dark:bg-gray-900;
+    }
+
+
+    code,pre {
+        @apply !text-[12px];
+    }
+
+    pre  {
+        @apply bg-syntax-bg text-syntax-white;
+    }
+    
+    .navlink {
+       @apply block h-full p-3 2xl:p-4 transition duration-100 hover:bg-gray-400 dark:hover:bg-navy-600; 
+    }
+}
+
+@layer components {
+
+}
