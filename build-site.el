@@ -83,13 +83,44 @@
           (div (@ (class "grid h-screen grid-areas-mobile grid-rows-layout lg:grid-areas-desktop grid-cols-layout"))
                ,(jh/org-html-header)
                ,(jh/org-html-sidebar)
-               (main (@ (class "px-3 pt-3 overflow-y-scroll grid-in-main org-sm max-w-none 2xl:org-lg org-royal scrollbar-thin dark:org-dark scroll-smooth motion-reduce:scroll-auto ")) 
-                     ,(when (equal "config" (plist-get info :page-type))
+               ,content))))))
+
+(defun jh/org-html-inner-template (content info)
+  "Returns the inner template for a page."
+  (concat 
+   (sxml-to-xml
+    `(main (@ (class "px-3 pt-3 overflow-y-scroll grid-in-main org-sm max-w-none 2xl:org-lg org-royal scrollbar-thin dark:org-dark scroll-smooth motion-reduce:scroll-auto")) 
+                     ,(when (not (equal "Home" (plist-get info :title-type)))
                         (format "<h1>%s</h1>" (org-export-data (plist-get info :title) info)))
-                     ,content)))))))
+                     ,content))))
+
+
 
 (org-export-define-derived-backend 'jh/html 'slimhtml
- :translate-alist '((template . jh/org-html-template)))
+ :translate-alist '((template . jh/org-html-template)
+                    (inner-template . jh/org-html-inner-template)))
+
+(defun jh/org-config-html-inner-template (content info)
+  "Returns the inner template for a page."
+  (concat 
+   (sxml-to-xml
+    `(main (@ (class "px-3 pt-3 overflow-y-scroll grid-in-main org-sm max-w-none 2xl:org-lg org-royal scrollbar-thin dark:org-dark scroll-smooth motion-reduce:scroll-auto grid grid-cols-1 lg:grid-cols-[3fr,1fr]"))
+           (article 
+            (h1 ,(org-export-data (plist-get info :title) info))
+            ,content)))))
+
+(org-export-define-derived-backend 'jh/config-html 'slimhtml
+ :translate-alist '((template . jh/org-html-template)
+                    (inner-template . jh/org-config-html-inner-template)))
+
+
+
+;(org-export-define-derived-backend 'jh/html 'slimhtml
+; :translate-alist '((template . jh/org-html-template)
+;                    (inner-template . jh/org-html-inner-template)))
+
+
+
 
 (defun get-article-output-path (org-file pub-dir)
   (let ((article-dir (concat pub-dir
@@ -121,6 +152,19 @@
                           article-path))))
                      
 
+(defun jh/org-config-publish-to-html (plist filename pub-dir)
+  "publish an org file to html, using the filename as the output directory."
+  (let ((article-path (get-article-output-path filename pub-dir)))
+    (cl-letf (((symbol-function 'org-export-output-file-name)
+               (lambda (extension &optional subtreep pub-dir)
+                 (concat article-path "index" extension))))
+      (org-publish-org-to 'jh/config-html
+                          filename
+                          (concat "." (or (plist-get plist :html-extension)
+                                          "html"))
+                          plist
+                          article-path))))
+
 (setq org-publish-project-alist 
       `(("org:pages"
          :base-directory "./org/"
@@ -133,7 +177,7 @@
          :base-directory "./org/"
          :base-extension "org"
          :recursive t
-         :publishing-function jh/org-html-publish-to-html
+         :publishing-function jh/org-config-publish-to-html
          :publishing-directory "./public/"
          :exclude "home"
          :page-type "config"
