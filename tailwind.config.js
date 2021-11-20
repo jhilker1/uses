@@ -65,7 +65,8 @@ module.exports = {
            blue: '#61afef',
            purple: '#c678dd',
            teal: '#56b6c2',
-           white: '#eceff4' 
+           white: '#eceff4',
+           gray: "#83898d"
        }
       },
       typography(theme) {

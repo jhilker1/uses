@@ -24,6 +24,22 @@
     .navlink {
        @apply block h-full p-3 2xl:p-4 transition duration-100 hover:bg-gray-400 dark:hover:bg-navy-600; 
     }
+
+    .org-comment, .org-comment-delimiter {
+        @apply italic text-syntax-gray;
+    }
+    
+    .org-type {
+        @apply text-syntax-yellow;
+    }
+
+    .org-variable-name, .org-function-name {
+        @apply text-syntax-purple;
+     }
+
+    .org-string {
+        @apply text-syntax-green;
+    }
 }
 
 @layer components {
