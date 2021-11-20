@@ -51,18 +51,27 @@
       (meta (@ (author "Jacob Hilker")))
       (meta (@ (name "viewport") 
                (content "width=device-width, initial-scale=1.0")))
-      (link (@  (rel "stylesheet") (href "/css/style.css")))))))
+      (link (@ (rel "stylesheet") (href "/css/style.css")))
+      (link (@ (rel "stylesheet") (href "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css")))))))
 
 (defun jh/org-html-header ()
   "Returns header for my site." 
   (concat
-   (sxml-to-xml
-    `(header (@ (class "z-10 items-center text-gray-800 bg-gray-200 dark:bg-navy-700 dark:text-gray-200 grid-in-header"))
-             (div (@ (class "flex items-center justify-between h-[52px] 2xl:h-[62px]"))
-                  (nav (@ (class "items-center hidden h-full space-x-3 lg:flex"))
-                       (a (@ (href "/") (class "navlink")) "Home")
-                       (a (@ (href "/polybar/") (class "navlink")) "Polybar")))))))
+   (esxml-to-xml
+    `(header ((class . "z-10 items-center text-gray-800 bg-gray-200 dark:bg-navy-700 dark:text-gray-200 grid-in-header"))
+             (div ((class . "flex items-center justify-between h-[52px] 2xl:h-[62px]"))
+                  (nav ((class . "items-center hidden h-full space-x-3 lg:flex"))
+                       (a ((href . "/") (class . "navlink")) "Home")
+                       (a ((href .  "/polybar/") (class . "navlink")) "Polybar")))))))
 
+(defun jh/org-html-sidebar ()
+  "Returns sidebar for site."
+  (concat 
+   (esxml-to-xml
+    `(aside ((class . "flex-col items-center hidden bg-blueGray-300 dark:bg-blueGray-700 dark:text-gray-100 grid-in-sidebar lg:flex"))
+            (span ((class . "p-2 font-bold uppercase")) ,jh/site-title)))
+   )
+)
 
 (defun jh/org-html-template (content info)
   (concat 
@@ -73,7 +82,8 @@
          (body 
           (div (@ (class "grid h-screen grid-areas-mobile grid-rows-layout lg:grid-areas-desktop grid-cols-layout"))
                ,(jh/org-html-header)
-               (main (@ (class "px-3 pt-3 overflow-y-scroll grid-in-main !max-w-none org-sm 2xl:org-lg org-royal scrollbar-thin dark:org-dark scroll-smooth motion-reduce:scroll-auto ")) 
+               ,(jh/org-html-sidebar)
+               (main (@ (class "px-3 pt-3 overflow-y-scroll grid-in-main org-sm max-w-none 2xl:org-lg org-royal scrollbar-thin dark:org-dark scroll-smooth motion-reduce:scroll-auto ")) 
                      ,(when (equal "config" (plist-get info :page-type))
                         (format "<h1>%s</h1>" (org-export-data (plist-get info :title) info)))
                      ,content)))))))
