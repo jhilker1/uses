@@ -1,0 +1,250 @@
+#+title: Publish Script
+#+property: header-args:elisp :tangle build-site.el
+
+This document aims to serve as both the source code and documentation for my publishing script. I will try to break everything down as best I can.
+
+* Header Line
+This header line simply enables lexical binding in my script.
+#+begin_src elisp
+;;; -*- lexical-binding:t; -*-
+#+end_src
+
+* User Emacs Directory
+Since I am using [[github:raxod502/straight.el][Straight.el]] as my package manager, I don't want emacs to use my default directory. In addition, I don't want to make backup or lockfiles, since I am using git to manage my files.
+#+begin_src elisp
+(setq user-emacs-directory (expand-file-name "./.emacs.d/"))
+
+(setq make-backup-files nil 
+      create-lockfiles nil)
+#+end_src
+
+
+* Package Bootstrapping with Straight.el
+This is quite literally just the install script from straight.el. That's it - refer to it for the documentation. In addition, I'm setting up =use-package= here to use the =use-package= macro, instead of the multiple =require= statements.
+#+begin_src elisp
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+(straight-use-package 'use-package)
+(setq straight-use-package-by-default t)
+#+end_src
+
+
+* Packages
+These are the core packages that allow me to make my website.
+** ESXML
+ESXML is a code-generation package that allows me to create html templates in Elisp, without needing to rely on wacky =format= hacks.
+#+begin_src elisp
+(use-package esxml)
+#+end_src
+
+** HTMLize
+To be quite honest, I'm not super familiar with all that this package does - I know that it allows me to create CSS for org-mode documents that are exported to HTML.
+#+begin_src elisp
+(use-package htmlize
+  :config
+  (setq org-html-htmlize-output-type 'css))
+#+end_src
+
+** Ox-Slimhtml
+This is just a smaller and cleaner HTML export.
+#+begin_src elisp
+(use-package ox-slimhtml)
+#+end_src
+
+** Ox-Publish
+Finally, this is the core of this website, which is what allows me to create entire websites. However, since it is built-in to org-mode, I don't need to install it.
+#+begin_src elisp
+(use-package ox-publish
+  :ensure nil
+  :straight nil)
+#+end_src
+
+
+* Site Variables
+Here I'm just setting up a few site variables, along with a script for remembering dark mode.
+#+begin_src elisp
+(setq jh/site-title "Jacob's Tech Stack"
+      jh/remember-dark-mode-script "<script>
+       if (localStorage.darkMode === 'true' || (!('darkMode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }")
+
+#+end_src
+
+* Templates
+** Partial Templates
+*** HTML Head
+Here is where I build the head of every html page on the website.
+#+begin_src elisp
+(defun jh/org-html-head (info)
+  "Returns the HTML head for my site."
+  (concat
+   (sxml-to-xml
+    `(head
+      (title ,(concat (org-export-data (plist-get info :title) info) " - " jh/site-title))
+      (meta (@ (charset "utf-8")))
+      (meta (@ (author "Jacob Hilker")))
+      (meta (@ (name "viewport") 
+               (content "width=device-width, initial-scale=1.0")))
+      (link (@ (rel "stylesheet") (href "/css/style.css")))
+      (link (@ (rel "stylesheet") (href "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css")))))))
+#+end_src
+
+*** Header
+This is just a basic header. It has a navbar.
+#+begin_src elisp
+(defun jh/org-html-header ()
+  "Returns header for my site." 
+  (concat
+   (esxml-to-xml
+    `(header ((class . "z-10 items-center text-gray-800 bg-gray-200 dark:bg-navy-700 dark:text-gray-200 grid-in-header"))
+             (div ((class . "flex items-center justify-between h-[52px] 2xl:h-[62px]"))
+                  (nav ((class . "items-center hidden h-full space-x-3 lg:flex"))
+                       (a ((href . "/") (class . "navlink")) "Home")
+                       (a ((href .  "/polybar/") (class . "navlink")) "Polybar")))))))
+#+end_src
+
+*** Sidebar
+This is a basic sidebar.
+#+begin_src elisp
+(defun jh/org-html-sidebar ()
+  "Returns sidebar for site."
+  (concat 
+   (esxml-to-xml
+    `(aside ((class . "flex-col items-center hidden bg-blueGray-300 dark:bg-blueGray-700 dark:text-gray-100 grid-in-sidebar lg:flex"))
+            (span ((class . "p-2 font-bold uppercase")) ,jh/site-title)))
+   )
+)
+#+end_src
+
+** Content Templates
+Here is where I am setting up my content templates - these actually contain the content on the page. I am treating a "config" as, well, one of my literate config files, while a page would be something like the homepage, or this document.
+
+*** Pages
+#+begin_src elisp
+(defun jh/org-html-page-template (content info)
+  (concat
+  (sxml-to-xml
+    `(main (@ (class "px-3 pt-3 overflow-y-scroll grid-in-main org-sm max-w-none 2xl:org-lg org-royal scrollbar-thin dark:org-dark scroll-smooth motion-reduce:scroll-auto")) 
+                     ,(when (not (equal "Home" (org-export-data (plist-get info :title) info)))
+                        (format "<h1>%s</h1>" (org-export-data (plist-get info :title) info)))
+                     ,content))))
+#+end_src
+
+*** Configs
+#+begin_src elisp
+(defun jh/org-html-config-template (content info)
+ (concat
+  (sxml-to-xml
+    `(main (@ (class "px-3 pt-3 overflow-y-scroll grid-in-main org-sm max-w-none 2xl:org-lg org-royal scrollbar-thin dark:org-dark scroll-smooth motion-reduce:scroll-auto grid grid-cols-1 lg:grid-cols-[3fr,1fr]"))
+           (article 
+            (h1 ,(org-export-data (plist-get info :title) info))
+               ,content))
+    ;TODO add Table of Contents Details
+)))
+#+end_src
+
+
+** Full Template
+#+begin_src elisp
+(defun jh/org-html-template (content info)
+  (concat 
+   "<!DOCTYPE html>"
+   (sxml-to-xml
+   `(html (@ (lang "en"))
+          ,(jh/org-html-head info)
+          (body 
+           (div (@ (class "grid h-screen grid-areas-mobile grid-rows-layout lg:grid-areas-desktop grid-cols-layout"))
+                ,(jh/org-html-header)
+                ,(jh/org-html-sidebar)
+                ,(if (not (equal "config" (plist-get info :page-type)))
+                          (jh/org-html-page-template content info)
+                          (jh/org-html-config-template content info))))))))
+#+end_src
+
+* TODO HTML Transcoders
+
+* Custom Backend
+Now that I've established a template, I can create a custom backend for publishing.
+#+begin_src elisp
+(org-export-define-derived-backend 'jh/html 'slimhtml
+  :translate-alist '((template . jh/org-html-template)))
+#+end_src
+
+* Publish To =dir/index.html=
+I want to have clean urls in my website, and this allows me to first get the article path, and then to publish it to =path/index.html=. This is a modified version of the one from the [[github:systemcrafters/systemcrafters.github.io][System Crafters]] publishing script.
+#+begin_src elisp
+(defun get-article-output-path (org-file pub-dir)
+  (let ((article-dir (concat pub-dir
+                             (downcase
+                              (file-name-as-directory
+                               (file-name-sans-extension
+                                (file-name-nondirectory org-file)))))))
+
+    (if (string-match "\\/home.org$" org-file)
+        pub-dir
+        (progn
+          (unless (file-directory-p article-dir)
+            (make-directory article-dir t))
+          article-dir))))
+
+
+
+(defun jh/org-html-publish-to-html (plist filename pub-dir)
+  "publish an org file to html, using the filename as the output directory."
+  (let ((article-path (get-article-output-path filename pub-dir)))
+    (cl-letf (((symbol-function 'org-export-output-file-name)
+               (lambda (extension &optional subtreep pub-dir)
+                 (concat article-path "index" extension))))
+      (org-publish-org-to 'jh/html
+                          filename
+                          (concat "." (or (plist-get plist :html-extension)
+                                          "html"))
+                          plist
+                          article-path))))
+#+end_src
+
+
+* Defining Publishing Projects
+This is where I finally define my projects.
+#+begin_src elisp
+(setq org-publish-project-alist 
+      `(("org:pages"
+         :base-directory "./org/"
+         :base-extension "org"
+         :recursive nil
+         :publishing-function jh/org-html-publish-to-html
+         :exclude "polybar"
+         :publishing-directory "./public/")
+        ("org:configs"
+         :base-directory "./org/"
+         :base-extension "org"
+         :recursive t
+         :publishing-function jh/org-html-publish-to-html
+         :publishing-directory "./public/"
+         :exclude "home"
+         :page-type "config"
+         :with-toc t
+         :headline-levels 3)
+        ("org" :components ("org:pages" "org:configs"))
+        ("css"
+         :base-directory "./static/"
+         :base-extension "css"
+         :recursive t
+         :publishing-function org-publish-attachment
+         :publishing-directory "./public/"
+         :exclude "css/tailwind")))
+#+end_src
